@@ -70,7 +70,11 @@ const defaultTasks = [
   { id: 7, title: "Tidy Up Room", icon: "🧸", completed: false, category: "weekly" },
 ];
 
-const QUICK_EMOJIS = ["🦸‍♀️", "👶", "🧠", "🏫", "🎻", "📚", "🧸", "🎨", "⚽", "🎹", "🧹", "🍎", "⭐", "🚀"];
+// Added Tennis, Basketball, Swim, Chinese (Lantern/Dragon), Science, Story, Exam, and more!
+const QUICK_EMOJIS = [
+  "🦸‍♀️", "👶", "🧠", "🏫", "🎻", "📚", "🧸", "🎨", "⚽", "🎹", "🧹", "🍎", "⭐", "🚀", 
+  "🎾", "🏀", "🏊", "🏮", "🐉", "🔬", "🧪", "📖", "📝", "💯"
+];
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
