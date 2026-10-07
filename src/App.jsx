@@ -388,7 +388,7 @@ export default function App() {
                 placeholder="****"
                 maxLength="4"
               />
-              {pinError && <p className="text-red-500 text-center font-bold mt-2 animate-pulse">Incorrect PIN. Try 1234</p>}
+              {pinError && <p className="text-red-500 text-center font-bold mt-2 animate-pulse">Incorrect PIN.</p>}
               <button 
                 type="submit"
                 className="w-full mt-6 bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-600 active:scale-95 transition-all"
