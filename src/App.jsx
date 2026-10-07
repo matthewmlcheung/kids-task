@@ -70,7 +70,6 @@ const defaultTasks = [
   { id: 7, title: "Tidy Up Room", icon: "🧸", completed: false, category: "weekly" },
 ];
 
-// Added Tennis, Basketball, Swim, Chinese (Lantern/Dragon), Science, Story, Exam, and more!
 const QUICK_EMOJIS = [
   "🦸‍♀️", "👶", "🧠", "🏫", "🎻", "📚", "🧸", "🎨", "⚽", "🎹", "🧹", "🍎", "⭐", "🚀", 
   "🎾", "🏀", "🏊", "🏮", "🐉", "🔬", "🧪", "📖", "📝", "💯"
@@ -80,56 +79,74 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [stars, setStars] = useState(0);
   const [activeTab, setActiveTab] = useState('daily');
-  const [viewMode, setViewMode] = useState('kid'); // 'kid' or 'parent'
+  const [viewMode, setViewMode] = useState('kid');
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Parent Mode Auth State
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
-  // Parent Mode Editing State
   const [editingTask, setEditingTask] = useState({ title: '', icon: '⭐', category: 'daily' });
   const [editId, setEditId] = useState(null);
 
-  // Drag and Drop References
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
+  // 1. Fetch data from Cloudflare on initial load
   useEffect(() => {
-    const savedTasks = localStorage.getItem('superStarTasks');
-    const savedStars = localStorage.getItem('superStarPoints');
-    const lastLogin = localStorage.getItem('superStarLastLogin');
-    
-    const today = new Date().toDateString();
+    fetch('/api/tasks')
+      .then(res => res.json())
+      .then(data => {
+        const today = new Date().toDateString();
+        let parsedTasks = data.tasks && data.tasks.length > 0 ? data.tasks : defaultTasks;
+        let parsedStars = data.stars || 0;
+        let lastLogin = data.lastLogin || today;
 
-    if (savedTasks) {
-      let parsedTasks = JSON.parse(savedTasks);
-      // Reset daily tasks if it's a new day!
-      if (lastLogin !== today) {
-        parsedTasks = parsedTasks.map(t => 
-          t.category === 'daily' ? { ...t, completed: false } : t
-        );
-        localStorage.setItem('superStarLastLogin', today);
-      }
-      setTasks(parsedTasks);
-    } else {
-      setTasks(defaultTasks);
-      localStorage.setItem('superStarLastLogin', today);
-    }
-
-    if (savedStars) {
-      setStars(parseInt(savedStars, 10));
-    }
-    
-    setIsLoaded(true);
+        if (lastLogin !== today) {
+          parsedTasks = parsedTasks.map(t => 
+            t.category === 'daily' ? { ...t, completed: false } : t
+          );
+        }
+        
+        setTasks(parsedTasks);
+        setStars(parsedStars);
+        setIsLoaded(true);
+      })
+      .catch(() => {
+        // Fallback to local storage if offline
+        const savedTasks = localStorage.getItem('superStarTasks');
+        const savedStars = localStorage.getItem('superStarPoints');
+        const lastLogin = localStorage.getItem('superStarLastLogin');
+        const today = new Date().toDateString();
+        
+        let parsedTasks = savedTasks ? JSON.parse(savedTasks) : defaultTasks;
+        if (lastLogin !== today) {
+          parsedTasks = parsedTasks.map(t => 
+            t.category === 'daily' ? { ...t, completed: false } : t
+          );
+        }
+        setTasks(parsedTasks);
+        setStars(savedStars ? parseInt(savedStars, 10) : 0);
+        setIsLoaded(true);
+      });
   }, []);
 
+  // 2. Save to Cloudflare (and local backup) automatically on every change
   useEffect(() => {
     if (isLoaded) {
+      const today = new Date().toDateString();
+      
+      // Local Backup
       localStorage.setItem('superStarTasks', JSON.stringify(tasks));
       localStorage.setItem('superStarPoints', stars.toString());
+      localStorage.setItem('superStarLastLogin', today);
+      
+      // Cloud Sync
+      fetch('/api/tasks', {
+        method: 'POST',
+        body: JSON.stringify({ tasks, stars, lastLogin: today })
+      }).catch(err => console.error("Offline: Saved locally"));
     }
   }, [tasks, stars, isLoaded]);
 
@@ -204,7 +221,6 @@ export default function App() {
     }
   };
 
-  // Handle drag and drop sorting
   const handleSort = () => {
     if (dragItem.current === null || dragOverItem.current === null) return;
     let _tasks = [...tasks];
@@ -388,7 +404,7 @@ export default function App() {
                 placeholder="****"
                 maxLength="4"
               />
-              {pinError && <p className="text-red-500 text-center font-bold mt-2 animate-pulse">Incorrect PIN.</p>}
+              {pinError && <p className="text-red-500 text-center font-bold mt-2 animate-pulse">Incorrect PIN. Try 1234</p>}
               <button 
                 type="submit"
                 className="w-full mt-6 bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-600 active:scale-95 transition-all"

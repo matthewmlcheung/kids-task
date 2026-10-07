@@ -1,15 +1,13 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // When the app asks for the tasks (Loading)
   if (request.method === "GET") {
     const data = await env.KIDS_TASKS.get("tasks");
-    return new Response(data || JSON.stringify({ tasks: [], stars: 0 }), {
+    return new Response(data || JSON.stringify({ tasks: [], stars: 0, lastLogin: "" }), {
       headers: { "Content-Type": "application/json" }
     });
   }
 
-  // When the app sends new updates (Saving)
   if (request.method === "POST") {
     const body = await request.text();
     await env.KIDS_TASKS.put("tasks", body);
