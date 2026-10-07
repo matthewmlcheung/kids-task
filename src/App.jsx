@@ -60,6 +60,15 @@ const Confetti = () => {
   );
 };
 
+// Helper function to find the most recent Monday
+const getStartOfWeek = () => {
+  const d = new Date();
+  const day = d.getDay();
+  // If it's Sunday (0), go back 6 days to Monday. Otherwise, go back (day - 1) days.
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff)).toDateString();
+};
+
 const defaultTasks = [
   { id: 1, title: "Superkids", icon: "🦸‍♀️", completed: false, category: "daily" },
   { id: 2, title: "Baby Yeung", icon: "👶", completed: false, category: "daily" },
@@ -86,6 +95,8 @@ export default function App() {
   const [rewards, setRewards] = useState([]);
   const [rewardHistory, setRewardHistory] = useState([]);
   const [stars, setStars] = useState(0);
+  const [lastWeeklyReset, setLastWeeklyReset] = useState('');
+  
   const [activeTab, setActiveTab] = useState('daily'); 
   const [viewMode, setViewMode] = useState('kid');
   const [parentTab, setParentTab] = useState('quests');
@@ -108,45 +119,66 @@ export default function App() {
       .then(res => res.json())
       .then(data => {
         const today = new Date().toDateString();
+        const currentWeekStart = getStartOfWeek();
+        
         let parsedTasks = data.tasks && data.tasks.length > 0 ? data.tasks : defaultTasks;
         let parsedRewards = data.rewards && data.rewards.length > 0 ? data.rewards : defaultRewards;
         let parsedHistory = data.rewardHistory || [];
         let parsedStars = data.stars || 0;
         let lastLogin = data.lastLogin || today;
+        let parsedWeeklyReset = data.lastWeeklyReset || currentWeekStart;
 
+        // Reset Daily tasks if it's a new day
         if (lastLogin !== today) {
           parsedTasks = parsedTasks.map(t => 
             t.category === 'daily' ? { ...t, completed: false } : t
           );
+        }
+
+        // Reset Weekly tasks if it's a new Monday!
+        if (parsedWeeklyReset !== currentWeekStart) {
+          parsedTasks = parsedTasks.map(t => 
+            t.category === 'weekly' ? { ...t, completed: false } : t
+          );
+          parsedWeeklyReset = currentWeekStart;
         }
         
         setTasks(parsedTasks);
         setRewards(parsedRewards);
         setRewardHistory(parsedHistory);
         setStars(parsedStars);
+        setLastWeeklyReset(parsedWeeklyReset);
         setIsLoaded(true);
       })
       .catch(() => {
+        const today = new Date().toDateString();
+        const currentWeekStart = getStartOfWeek();
+
         const savedTasks = localStorage.getItem('superStarTasks');
         const savedRewards = localStorage.getItem('superStarRewards');
         const savedHistory = localStorage.getItem('superStarHistory');
         const savedStars = localStorage.getItem('superStarPoints');
         const lastLogin = localStorage.getItem('superStarLastLogin');
-        const today = new Date().toDateString();
+        const savedWeeklyReset = localStorage.getItem('superStarWeeklyReset');
         
         let parsedTasks = savedTasks ? JSON.parse(savedTasks) : defaultTasks;
         let parsedRewards = savedRewards ? JSON.parse(savedRewards) : defaultRewards;
         let parsedHistory = savedHistory ? JSON.parse(savedHistory) : [];
+        let parsedWeeklyReset = savedWeeklyReset || currentWeekStart;
         
         if (lastLogin !== today) {
-          parsedTasks = parsedTasks.map(t => 
-            t.category === 'daily' ? { ...t, completed: false } : t
-          );
+          parsedTasks = parsedTasks.map(t => t.category === 'daily' ? { ...t, completed: false } : t);
         }
+        if (parsedWeeklyReset !== currentWeekStart) {
+          parsedTasks = parsedTasks.map(t => t.category === 'weekly' ? { ...t, completed: false } : t);
+          parsedWeeklyReset = currentWeekStart;
+        }
+
         setTasks(parsedTasks);
         setRewards(parsedRewards);
         setRewardHistory(parsedHistory);
         setStars(savedStars ? parseInt(savedStars, 10) : 0);
+        setLastWeeklyReset(parsedWeeklyReset);
         setIsLoaded(true);
       });
   }, []);
@@ -159,13 +191,14 @@ export default function App() {
       localStorage.setItem('superStarHistory', JSON.stringify(rewardHistory));
       localStorage.setItem('superStarPoints', stars.toString());
       localStorage.setItem('superStarLastLogin', today);
+      localStorage.setItem('superStarWeeklyReset', lastWeeklyReset);
       
       fetch('/api/tasks', {
         method: 'POST',
-        body: JSON.stringify({ tasks, rewards, rewardHistory, stars, lastLogin: today })
+        body: JSON.stringify({ tasks, rewards, rewardHistory, stars, lastLogin: today, lastWeeklyReset })
       }).catch(err => console.error("Offline: Saved locally"));
     }
-  }, [tasks, rewards, rewardHistory, stars, isLoaded]);
+  }, [tasks, rewards, rewardHistory, stars, lastWeeklyReset, isLoaded]);
 
   const toggleTask = (id) => {
     setTasks(prevTasks => {
@@ -190,7 +223,6 @@ export default function App() {
     if (stars >= reward.cost) {
       setStars(s => s - reward.cost);
       
-      // Add to history log with fulfilled set to false
       const newRecord = {
         id: Date.now(),
         title: reward.title,
@@ -258,12 +290,10 @@ export default function App() {
     if (editId === id) setEditId(null);
   };
 
-  // NEW: Toggle Fulfillment Status instead of deleting
   const toggleFulfillHistory = (id) => {
     setRewardHistory(rewardHistory.map(h => h.id === id ? { ...h, fulfilled: !h.fulfilled } : h));
   };
 
-  // KEEP: Actual delete function for cleaning up the log
   const handleDeleteHistory = (id) => {
     if(window.confirm("Are you sure you want to permanently delete this record?")) {
       setRewardHistory(rewardHistory.filter(h => h.id !== id));
@@ -291,6 +321,19 @@ export default function App() {
         </button>
         <h1 className="text-2xl font-bold text-center mt-2">Parent Dashboard</h1>
         
+        {/* NEW: Parent Star Banker / Modifier */}
+        <div className="bg-gray-700 rounded-xl p-4 mt-4 flex items-center justify-between border border-gray-600">
+          <div className="flex items-center gap-2 text-yellow-400 font-bold text-lg">
+            <Star className="fill-current" size={24} />
+            {stars} Stars
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setStars(s => Math.max(0, s - 10))} className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg font-bold text-sm transition-colors">- 10</button>
+            <button onClick={() => setStars(s => s + 10)} className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg font-bold text-sm transition-colors">+ 10</button>
+            <button onClick={() => setStars(s => s + 50)} className="bg-gray-500 hover:bg-gray-400 text-white px-3 py-2 rounded-lg font-bold text-sm transition-colors shadow">+ 50</button>
+          </div>
+        </div>
+
         <div className="flex bg-gray-700 p-1 rounded-xl mt-4 text-sm">
           <button 
             onClick={() => { setParentTab('quests'); setEditId(null); }} 
