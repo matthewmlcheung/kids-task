@@ -60,11 +60,9 @@ const Confetti = () => {
   );
 };
 
-// Helper function to find the most recent Monday
 const getStartOfWeek = () => {
   const d = new Date();
   const day = d.getDay();
-  // If it's Sunday (0), go back 6 days to Monday. Otherwise, go back (day - 1) days.
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   return new Date(d.setDate(diff)).toDateString();
 };
@@ -80,9 +78,9 @@ const defaultTasks = [
 ];
 
 const defaultRewards = [
-  { id: 1, title: "30 mins iPad time", cost: 10, icon: "📱" },
-  { id: 2, title: "Pick Friday Dinner", cost: 20, icon: "🍕" },
-  { id: 3, title: "New Small Toy", cost: 50, icon: "🎁" },
+  { id: 1, title: "15 mins iPad time", cost: 20, icon: "📱" },
+  { id: 2, title: "Pick Friday Dinner", cost: 150, icon: "🍕" },
+  { id: 3, title: "New Small Toy", cost: 300, icon: "🎁" },
 ];
 
 const QUICK_EMOJIS = [
@@ -128,14 +126,12 @@ export default function App() {
         let lastLogin = data.lastLogin || today;
         let parsedWeeklyReset = data.lastWeeklyReset || currentWeekStart;
 
-        // Reset Daily tasks if it's a new day
         if (lastLogin !== today) {
           parsedTasks = parsedTasks.map(t => 
             t.category === 'daily' ? { ...t, completed: false } : t
           );
         }
 
-        // Reset Weekly tasks if it's a new Monday!
         if (parsedWeeklyReset !== currentWeekStart) {
           parsedTasks = parsedTasks.map(t => 
             t.category === 'weekly' ? { ...t, completed: false } : t
@@ -300,7 +296,7 @@ export default function App() {
     }
   };
 
-  const handleSort = () => {
+  const handleTaskSort = () => {
     if (dragItem.current === null || dragOverItem.current === null) return;
     let _tasks = [...tasks];
     const draggedItemContent = _tasks.splice(dragItem.current, 1)[0];
@@ -308,6 +304,17 @@ export default function App() {
     dragItem.current = null;
     dragOverItem.current = null;
     setTasks(_tasks);
+  };
+
+  // NEW: Reward Drag and Drop Sorting function
+  const handleRewardSort = () => {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    let _rewards = [...rewards];
+    const draggedItemContent = _rewards.splice(dragItem.current, 1)[0];
+    _rewards.splice(dragOverItem.current, 0, draggedItemContent);
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setRewards(_rewards);
   };
 
   const renderParentMode = () => (
@@ -321,7 +328,6 @@ export default function App() {
         </button>
         <h1 className="text-2xl font-bold text-center mt-2">Parent Dashboard</h1>
         
-        {/* NEW: Parent Star Banker / Modifier */}
         <div className="bg-gray-700 rounded-xl p-4 mt-4 flex items-center justify-between border border-gray-600">
           <div className="flex items-center gap-2 text-yellow-400 font-bold text-lg">
             <Star className="fill-current" size={24} />
@@ -501,7 +507,7 @@ export default function App() {
                 draggable
                 onDragStart={() => (dragItem.current = index)}
                 onDragEnter={() => (dragOverItem.current = index)}
-                onDragEnd={handleSort}
+                onDragEnd={handleTaskSort}
                 onDragOver={(e) => e.preventDefault()}
                 className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-gray-300"
               >
@@ -522,10 +528,19 @@ export default function App() {
           </>
         ) : (
           <>
-            <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">Current Rewards</h3>
-            {rewards.map((reward) => (
-              <div key={reward.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm hover:border-gray-300">
+            <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">Current Rewards (Drag to Reorder)</h3>
+            {rewards.map((reward, index) => (
+              <div 
+                key={reward.id} 
+                draggable
+                onDragStart={() => (dragItem.current = index)}
+                onDragEnter={() => (dragOverItem.current = index)}
+                onDragEnd={handleRewardSort}
+                onDragOver={(e) => e.preventDefault()}
+                className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-gray-300"
+              >
                 <div className="flex items-center gap-3">
+                  <GripVertical size={20} className="text-gray-300" />
                   <span className="text-2xl">{reward.icon}</span>
                   <div>
                     <p className="font-bold text-gray-700">{reward.title}</p>
