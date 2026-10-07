@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, Trophy, Calendar, Sparkles, CheckCircle2, Circle, Settings, Lock, Edit2, Trash2, Plus, X, ArrowLeft, GripVertical, Gift, Clock } from 'lucide-react';
+import { Star, Trophy, Calendar, Sparkles, CheckCircle2, Circle, Settings, Lock, Edit2, Trash2, Plus, X, ArrowLeft, GripVertical, Gift, Clock, Undo } from 'lucide-react';
 
 const GlobalStyles = () => (
   <style>
@@ -84,11 +84,11 @@ const QUICK_EMOJIS = [
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [rewards, setRewards] = useState([]);
-  const [rewardHistory, setRewardHistory] = useState([]); // New History State
+  const [rewardHistory, setRewardHistory] = useState([]);
   const [stars, setStars] = useState(0);
   const [activeTab, setActiveTab] = useState('daily'); 
   const [viewMode, setViewMode] = useState('kid');
-  const [parentTab, setParentTab] = useState('quests'); // 'quests', 'rewards', or 'history'
+  const [parentTab, setParentTab] = useState('quests');
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -190,13 +190,14 @@ export default function App() {
     if (stars >= reward.cost) {
       setStars(s => s - reward.cost);
       
-      // Add to history log
+      // Add to history log with fulfilled set to false
       const newRecord = {
         id: Date.now(),
         title: reward.title,
         icon: reward.icon,
         cost: reward.cost,
-        date: new Date().toLocaleString()
+        date: new Date().toLocaleString(),
+        fulfilled: false
       };
       setRewardHistory([newRecord, ...rewardHistory]);
 
@@ -257,8 +258,16 @@ export default function App() {
     if (editId === id) setEditId(null);
   };
 
+  // NEW: Toggle Fulfillment Status instead of deleting
+  const toggleFulfillHistory = (id) => {
+    setRewardHistory(rewardHistory.map(h => h.id === id ? { ...h, fulfilled: !h.fulfilled } : h));
+  };
+
+  // KEEP: Actual delete function for cleaning up the log
   const handleDeleteHistory = (id) => {
-    setRewardHistory(rewardHistory.filter(h => h.id !== id));
+    if(window.confirm("Are you sure you want to permanently delete this record?")) {
+      setRewardHistory(rewardHistory.filter(h => h.id !== id));
+    }
   };
 
   const handleSort = () => {
@@ -282,7 +291,6 @@ export default function App() {
         </button>
         <h1 className="text-2xl font-bold text-center mt-2">Parent Dashboard</h1>
         
-        {/* Toggle Quests vs Rewards vs History */}
         <div className="flex bg-gray-700 p-1 rounded-xl mt-4 text-sm">
           <button 
             onClick={() => { setParentTab('quests'); setEditId(null); }} 
@@ -413,18 +421,30 @@ export default function App() {
               <div className="text-center p-8 text-gray-400 font-bold">No rewards claimed yet.</div>
             ) : (
               rewardHistory.map((record) => (
-                <div key={record.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm">
+                <div key={record.id} className={`flex items-center justify-between p-4 border rounded-2xl shadow-sm transition-all ${record.fulfilled ? 'bg-gray-100 opacity-75 border-gray-200' : 'bg-white border-green-100'}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{record.icon}</span>
                     <div>
-                      <p className="font-bold text-gray-700">{record.title}</p>
+                      <p className={`font-bold transition-all ${record.fulfilled ? 'text-gray-500 line-through decoration-gray-400' : 'text-gray-800'}`}>{record.title}</p>
                       <p className="text-xs text-gray-400 font-semibold">{record.date}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteHistory(record.id)} className="p-2 text-green-500 hover:bg-green-50 rounded-lg flex flex-col items-center">
-                    <CheckCircle2 size={24} />
-                    <span className="text-[10px] font-bold">Clear</span>
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => toggleFulfillHistory(record.id)} 
+                      className={`p-2 rounded-lg flex flex-col items-center transition-colors ${record.fulfilled ? 'text-gray-500 hover:bg-gray-200' : 'text-green-500 hover:bg-green-50'}`}
+                    >
+                      {record.fulfilled ? <Undo size={20} /> : <CheckCircle2 size={20} />}
+                      <span className="text-[10px] font-bold mt-1">{record.fulfilled ? 'Undo' : 'Fulfill'}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteHistory(record.id)} 
+                      className="p-2 text-red-400 hover:bg-red-50 rounded-lg flex flex-col items-center transition-colors"
+                    >
+                      <Trash2 size={20} />
+                      <span className="text-[10px] font-bold mt-1">Delete</span>
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -578,12 +598,17 @@ export default function App() {
                 </h2>
                 <div className="space-y-3">
                   {rewardHistory.slice(0, 5).map(record => (
-                    <div key={record.id} className="flex items-center p-3 bg-white/50 rounded-xl border border-gray-100">
+                    <div key={record.id} className={`flex items-center p-3 rounded-xl border transition-colors ${record.fulfilled ? 'bg-green-50 border-green-200' : 'bg-white/50 border-purple-100'}`}>
                       <span className="text-2xl mr-3">{record.icon}</span>
                       <div className="flex-1">
-                        <p className="font-bold text-gray-700">{record.title}</p>
+                        <p className={`font-bold ${record.fulfilled ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-700'}`}>{record.title}</p>
                         <p className="text-[10px] text-gray-400">{record.date}</p>
                       </div>
+                      {record.fulfilled && (
+                        <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full border border-green-200 shadow-sm animate-pop">
+                          Delivered!
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
