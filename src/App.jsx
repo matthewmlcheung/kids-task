@@ -59,7 +59,6 @@ const getStartOfWeek = () => {
   return new Date(d.setDate(diff)).toDateString();
 };
 
-// Updated Default Data for Two Kids
 const defaultTasks = {
   Colette: [
     { id: 1, title: "Superkids", icon: "🦸‍♀️", completed: false, category: "daily" },
@@ -102,6 +101,7 @@ export default function App() {
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const skipSave = useRef(true); // SAFETY LOCK: Prevents auto-saving defaults on load
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
@@ -114,7 +114,6 @@ export default function App() {
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
-  // Safe Data Migration Logic
   useEffect(() => {
     fetch('/api/tasks')
       .then(res => res.json())
@@ -137,7 +136,6 @@ export default function App() {
     const today = new Date().toDateString();
     const currentWeekStart = getStartOfWeek();
     
-    // Convert old flat arrays into object maps safely
     let parsedTasks = data.tasks || defaultTasks;
     if (Array.isArray(parsedTasks) || !parsedTasks.Colette) {
       parsedTasks = { Colette: Array.isArray(parsedTasks) ? parsedTasks : [], Kingsley: [] };
@@ -189,20 +187,24 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (isLoaded) {
-      const today = new Date().toDateString();
-      localStorage.setItem('superStarTasks', JSON.stringify(tasks));
-      localStorage.setItem('superStarRewards', JSON.stringify(rewards));
-      localStorage.setItem('superStarHistory', JSON.stringify(rewardHistory));
-      localStorage.setItem('superStarPoints', JSON.stringify(stars));
-      localStorage.setItem('superStarLastLogin', today);
-      localStorage.setItem('superStarWeeklyReset', lastWeeklyReset);
-      
-      fetch('/api/tasks', {
-        method: 'POST',
-        body: JSON.stringify({ tasks, rewards, rewardHistory, stars, lastLogin: today, lastWeeklyReset })
-      }).catch(err => console.error("Offline: Saved locally"));
+    // 🛡️ The strict save lock prevents the DB from being overwritten on startup
+    if (skipSave.current) {
+      if (isLoaded) skipSave.current = false;
+      return;
     }
+    
+    const today = new Date().toDateString();
+    localStorage.setItem('superStarTasks', JSON.stringify(tasks));
+    localStorage.setItem('superStarRewards', JSON.stringify(rewards));
+    localStorage.setItem('superStarHistory', JSON.stringify(rewardHistory));
+    localStorage.setItem('superStarPoints', JSON.stringify(stars));
+    localStorage.setItem('superStarLastLogin', today);
+    localStorage.setItem('superStarWeeklyReset', lastWeeklyReset);
+    
+    fetch('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify({ tasks, rewards, rewardHistory, stars, lastLogin: today, lastWeeklyReset })
+    }).catch(err => console.error("Offline: Saved locally"));
   }, [tasks, rewards, rewardHistory, stars, lastWeeklyReset, isLoaded]);
 
   const toggleTask = (id) => {
@@ -259,7 +261,6 @@ export default function App() {
     }
   };
 
-  // Crucial function restored to fix white screen crash!
   const closePinModal = () => {
     setShowPinModal(false);
     setPinInput('');
@@ -354,7 +355,6 @@ export default function App() {
 
   if (!isLoaded) return null;
 
-  // Dynamic Theme Colors
   const outerBg = activeKid === 'Colette' ? 'from-pink-100 via-purple-100 to-pink-200' : 'from-blue-100 via-cyan-100 to-green-100';
   const headerBg = activeKid === 'Colette' ? 'from-pink-400 to-purple-400' : 'from-blue-400 to-emerald-400';
   const highlightColor = activeKid === 'Colette' ? 'text-pink-500' : 'text-blue-500';
@@ -453,7 +453,7 @@ export default function App() {
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{record.icon}</span>
                       <div>
-                        <p className={`font-bold ${record.fulfilled ? 'text-gray-500 line-through' : 'text-gray-800'}`}>{record.title}</p>
+                        <p className={`font-bold transition-all ${record.fulfilled ? 'text-gray-500 line-through' : 'text-gray-800'}`}>{record.title}</p>
                         <p className="text-xs text-gray-400">{record.date}</p>
                       </div>
                     </div>
@@ -593,7 +593,7 @@ export default function App() {
                     <div key={record.id} className={`flex items-center p-3 rounded-xl border transition-colors ${record.fulfilled ? 'bg-white border-green-200' : 'bg-white/50 border-white'}`}>
                       <span className="text-2xl mr-3">{record.icon}</span>
                       <div className="flex-1">
-                        <p className={`font-bold ${record.fulfilled ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{record.title}</p>
+                        <p className={`font-bold ${record.fulfilled ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-700'}`}>{record.title}</p>
                         <p className="text-[10px] text-gray-400">{record.date}</p>
                       </div>
                       {record.fulfilled && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100">Delivered!</span>}
