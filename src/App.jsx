@@ -145,6 +145,10 @@ export default function App() {
   const [editingReward, setEditingReward] = useState({ title: '', icon: '🎁', cost: 10 });
   const [editId, setEditId] = useState(null);
 
+  // --- NEW BULLETPROOF DRAG & DROP REFS ---
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
+
   useEffect(() => {
     fetch('/api/tasks')
       .then(res => res.json())
@@ -355,6 +359,7 @@ export default function App() {
     }
   };
 
+  // --- MANUAL UP/DOWN ARROWS ---
   const moveTask = (index, direction) => {
     setTasks(prev => {
       const updated = { ...prev };
@@ -381,6 +386,58 @@ export default function App() {
       updated[parentTargetReward] = list;
       return updated;
     });
+  };
+
+  // --- REVAMPED DRAG & DROP ENGINE ---
+  const handleDragStart = (e, index) => {
+    dragItem.current = index;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index);
+    
+    // Slight transparency to show it's being dragged
+    setTimeout(() => {
+      if (e.target) e.target.style.opacity = "0.4";
+    }, 0);
+  };
+
+  const handleDragEnd = (e) => {
+    if (e.target) e.target.style.opacity = "1";
+    dragItem.current = null;
+    dragOverItem.current = null;
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault(); // MANDATORY: This allows the element to be dropped here
+    e.dataTransfer.dropEffect = "move";
+    dragOverItem.current = index;
+  };
+
+  const handleDropTask = (e) => {
+    e.preventDefault();
+    if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+      setTasks(prev => {
+        const updated = { ...prev };
+        const list = [...(updated[parentTargetKid] || [])];
+        const draggedItemContent = list.splice(dragItem.current, 1)[0];
+        list.splice(dragOverItem.current, 0, draggedItemContent);
+        updated[parentTargetKid] = list;
+        return updated;
+      });
+    }
+  };
+
+  const handleDropReward = (e) => {
+    e.preventDefault();
+    if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+      setRewards(prev => {
+        const updated = { ...prev };
+        const list = [...(updated[parentTargetReward] || [])];
+        const draggedItemContent = list.splice(dragItem.current, 1)[0];
+        list.splice(dragOverItem.current, 0, draggedItemContent);
+        updated[parentTargetReward] = list;
+        return updated;
+      });
+    }
   };
 
   if (!isLoaded) return null;
@@ -498,9 +555,17 @@ export default function App() {
               </>
             ) : parentTab === 'quests' ? (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests (Reorder)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests (Drag)</h3>
                 {(tasks[parentTargetKid] || []).map((task, index) => (
-                  <div key={task.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm hover:border-gray-300 transition-all">
+                  <div 
+                    key={task.id} 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDrop={handleDropTask}
+                    onDragEnd={handleDragEnd}
+                    className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-gray-300 transition-all duration-200"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-center mr-1">
                         <button type="button" onClick={() => moveTask(index, 'up')} disabled={index === 0} className={`p-0.5 rounded ${index === 0 ? 'text-transparent' : 'text-gray-400 hover:text-blue-500 active:scale-95'}`}><ChevronUp size={16} /></button>
@@ -519,9 +584,17 @@ export default function App() {
               </>
             ) : (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards (Reorder)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards (Drag)</h3>
                 {(rewards[parentTargetReward] || []).map((reward, index) => (
-                  <div key={reward.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm hover:border-gray-300 transition-all">
+                  <div 
+                    key={reward.id} 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDrop={handleDropReward}
+                    onDragEnd={handleDragEnd}
+                    className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing hover:border-gray-300 transition-all duration-200"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col items-center mr-1">
                         <button type="button" onClick={() => moveReward(index, 'up')} disabled={index === 0} className={`p-0.5 rounded ${index === 0 ? 'text-transparent' : 'text-gray-400 hover:text-purple-500 active:scale-95'}`}><ChevronUp size={16} /></button>
