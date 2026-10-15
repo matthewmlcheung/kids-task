@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, Trophy, Calendar, Sparkles, CheckCircle2, Circle, Settings, Lock, Edit2, Trash2, Plus, X, ArrowLeft, GripVertical, Gift, Clock, Undo } from 'lucide-react';
+import { Star, Trophy, Calendar, Sparkles, CheckCircle2, Circle, Settings, Lock, Edit2, Trash2, Plus, X, ArrowLeft, GripVertical, Gift, Clock, Undo, ChevronUp, ChevronDown } from 'lucide-react';
 
 const GlobalStyles = () => (
   <style>
@@ -61,27 +61,61 @@ const getStartOfWeek = () => {
 
 const defaultTasks = {
   Colette: [
-    { id: 1, title: "Superkids", icon: "🦸‍♀️", completed: false, category: "daily" },
-    { id: 2, title: "Violin", icon: "🎻", completed: false, category: "daily" }
+    { id: 1792037340114, title: "Be Polite", icon: "⭐", category: "daily", completed: false },
+    { id: 1792037362689, title: "Be Joyful", icon: "💖", category: "daily", completed: false },
+    { id: 1792037381368, title: "Be Thankful", icon: "🎁", category: "daily", completed: false },
+    { id: 1792037404226, title: "Good Hope (English)", icon: "🔤", category: "daily", completed: false },
+    { id: 1792037412788, title: "Good Hope (Chinese)", icon: "🏮", category: "daily", completed: false },
+    { id: 1792037432557, title: "Good Hope (Maths)", icon: "💯", category: "daily", completed: false },
+    { id: 1792037512193, title: "Good Hope (Others)", icon: "📚", category: "daily", completed: false },
+    { id: 1792037683412, title: "Practice Violin (30 mins)", icon: "🎻", category: "daily", completed: false },
+    { id: 1792037802996, title: "Pack School Bag", icon: "🎒", category: "daily", completed: false },
+    { id: 1792037828225, title: "Pack Snacks", icon: "🍎", category: "daily", completed: false },
+    { id: 1792037840554, title: "Prepare for OK Lens", icon: "🧿", category: "daily", completed: false },
+    { id: 1792037725708, title: "Superkids HW", icon: "🦸‍♀️", category: "weekly", completed: false },
+    { id: 1792037747338, title: "Baby Yeung HW", icon: "👧", category: "weekly", completed: false },
+    { id: 1792037737713, title: "Brainiac HW", icon: "🧠", category: "weekly", completed: false },
+    { id: 1792038802633, title: "Math 數研 HW", icon: "💯", category: "weekly", completed: false },
+    { id: 1792038625504, title: "Tennis (認真地)", icon: "🎾", category: "weekly", completed: false },
+    { id: 1792037778463, title: "Tidy Up Room", icon: "🧸", category: "weekly", completed: false }
   ],
   Kingsley: [
-    { id: 3, title: "Superkids", icon: "🦸‍♂️", completed: false, category: "daily" },
-    { id: 4, title: "Tidy Up Room", icon: "🧸", completed: false, category: "daily" }
+    { id: 1792038715246, title: "Be Polite", icon: "⭐", category: "daily", completed: false },
+    { id: 1792038726458, title: "Be Joyful", icon: "💖", category: "daily", completed: false },
+    { id: 1792038731332, title: "Be Thankful", icon: "🎁", category: "daily", completed: false },
+    { id: 1792038743045, title: "Learning Habitat", icon: "🏫", category: "daily", completed: false },
+    { id: 1792038878632, title: "Read Chinese Books x 3", icon: "🏮", category: "daily", completed: false },
+    { id: 1792038886365, title: "Read English Books x 3", icon: "📖", category: "daily", completed: false },
+    { id: 1792038835648, title: "Practice Flute (30 mins)", icon: "🪈", category: "daily", completed: false },
+    { id: 1792039022027, title: "Skipping Rope", icon: "📿", category: "daily", completed: false },
+    { id: 1792038958519, title: "Pack School Bag", icon: "🎒", category: "daily", completed: false },
+    { id: 1792038754512, title: "PLM HW", icon: "🔤", category: "weekly", completed: false },
+    { id: 1792038766337, title: "Miss Chan Maths HW", icon: "💯", category: "weekly", completed: false },
+    { id: 1792038787574, title: "Math 數研 HW", icon: "💯", category: "weekly", completed: false },
+    { id: 1792038852832, title: "Ms Yau HW", icon: "🏮", category: "weekly", completed: false },
+    { id: 1792038974877, title: "Tidy Up Room", icon: "🧸", category: "weekly", completed: false }
   ]
 };
 
 const defaultRewards = {
   shared: [
-    { id: 1, title: "15 mins iPad time", cost: 20, icon: "📱" },
-    { id: 2, title: "Pick Friday Dinner", cost: 150, icon: "🍕" }
+    { id: 2, title: "Pick Friday Dinner", cost: 90, icon: "🍕" },
+    { id: 1792038162802, title: "Special Dessert / Ice Cream", icon: "🍦", cost: 90 },
+    { id: 1792038176482, title: "Choose the Bedtime Story", icon: "📖", cost: 90 },
+    { id: 1792038201840, title: "Stationery Shopping", icon: "🎨", cost: 150 },
+    { id: 1, title: "5 mins iPad time", cost: 150, icon: "📱" },
+    { id: 1792037936958, title: "Small Toy (<$120)", icon: "🎁", cost: 500 },
+    { id: 1792037956687, title: "Huge Toy (<$500)", icon: "🎁", cost: 1000 },
+    { id: 1792038249560, title: "Living Room Campout (Weekend)", icon: "⛺️", cost: 1000 },
+    { id: 1792037988419, title: "Special Day Out", icon: "🏰", cost: 2000 }
   ],
   Colette: [],
   Kingsley: []
 };
 
 const QUICK_EMOJIS = [
-  "🦸‍♀️", "🦸‍♂️", "👧", "👦", "🧠", "🏫", "🎻", "📚", "🧸", "🎨", "⚽", "🎹", "🧹", "🍎", "⭐", "🚀", 
-  "🎾", "🏀", "🏊", "🏮", "🐉", "🔬", "🧪", "📖", "📝", "💯", "📱", "🍕", "🎁", "🎮", "🍦"
+  "🦸‍♀️", "🦸‍♂️", "👧", "👦", "🧠", "🏫", "🎻", "🪈", "📚", "🧸", "🎨", "⚽", "🎾", "📿", "🎹", "🧹", "🍎", "⭐", "💖", "🚀", 
+  "🏊", "🏮", "🐉", "🔬", "🧪", "📖", "📝", "🔤", "💯", "📱", "🍕", "🎁", "🎮", "🍦", "⛺️", "🏰"
 ];
 
 export default function App() {
@@ -101,7 +135,7 @@ export default function App() {
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const skipSave = useRef(true); // SAFETY LOCK: Prevents auto-saving defaults on load
+  const skipSave = useRef(true); 
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
@@ -110,9 +144,6 @@ export default function App() {
   const [editingTask, setEditingTask] = useState({ title: '', icon: '⭐', category: 'daily' });
   const [editingReward, setEditingReward] = useState({ title: '', icon: '🎁', cost: 10 });
   const [editId, setEditId] = useState(null);
-
-  const dragItem = useRef(null);
-  const dragOverItem = useRef(null);
 
   useEffect(() => {
     fetch('/api/tasks')
@@ -138,12 +169,12 @@ export default function App() {
     
     let parsedTasks = data.tasks || defaultTasks;
     if (Array.isArray(parsedTasks) || !parsedTasks.Colette) {
-      parsedTasks = { Colette: Array.isArray(parsedTasks) ? parsedTasks : [], Kingsley: [] };
+      parsedTasks = { Colette: Array.isArray(parsedTasks) ? parsedTasks : defaultTasks.Colette, Kingsley: defaultTasks.Kingsley };
     }
 
     let parsedRewards = data.rewards || defaultRewards;
     if (Array.isArray(parsedRewards) || !parsedRewards.shared) {
-      parsedRewards = { shared: Array.isArray(parsedRewards) ? parsedRewards : [], Colette: [], Kingsley: [] };
+      parsedRewards = { shared: Array.isArray(parsedRewards) ? parsedRewards : defaultRewards.shared, Colette: [], Kingsley: [] };
     }
 
     let parsedHistory = data.rewardHistory || { Colette: [], Kingsley: [] };
@@ -187,7 +218,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    // 🛡️ The strict save lock prevents the DB from being overwritten on startup
     if (skipSave.current) {
       if (isLoaded) skipSave.current = false;
       return;
@@ -325,32 +355,32 @@ export default function App() {
     }
   };
 
-  const handleTaskSort = () => {
-    if (dragItem.current === null || dragOverItem.current === null) return;
+  const moveTask = (index, direction) => {
     setTasks(prev => {
       const updated = { ...prev };
       const list = [...(updated[parentTargetKid] || [])];
-      const draggedItem = list.splice(dragItem.current, 1)[0];
-      list.splice(dragOverItem.current, 0, draggedItem);
+      if (direction === 'up' && index > 0) {
+        [list[index - 1], list[index]] = [list[index], list[index - 1]];
+      } else if (direction === 'down' && index < list.length - 1) {
+        [list[index + 1], list[index]] = [list[index], list[index + 1]];
+      }
       updated[parentTargetKid] = list;
       return updated;
     });
-    dragItem.current = null;
-    dragOverItem.current = null;
   };
 
-  const handleRewardSort = () => {
-    if (dragItem.current === null || dragOverItem.current === null) return;
+  const moveReward = (index, direction) => {
     setRewards(prev => {
       const updated = { ...prev };
       const list = [...(updated[parentTargetReward] || [])];
-      const draggedItem = list.splice(dragItem.current, 1)[0];
-      list.splice(dragOverItem.current, 0, draggedItem);
+      if (direction === 'up' && index > 0) {
+        [list[index - 1], list[index]] = [list[index], list[index - 1]];
+      } else if (direction === 'down' && index < list.length - 1) {
+        [list[index + 1], list[index]] = [list[index], list[index + 1]];
+      }
       updated[parentTargetReward] = list;
       return updated;
     });
-    dragItem.current = null;
-    dragOverItem.current = null;
   };
 
   if (!isLoaded) return null;
@@ -468,11 +498,16 @@ export default function App() {
               </>
             ) : parentTab === 'quests' ? (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests (Drag)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests (Reorder)</h3>
                 {(tasks[parentTargetKid] || []).map((task, index) => (
-                  <div key={task.id} draggable onDragStart={() => (dragItem.current = index)} onDragEnter={() => (dragOverItem.current = index)} onDragEnd={handleTaskSort} onDragOver={(e) => e.preventDefault()} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing">
-                    <div className="flex items-center gap-3">
-                      <GripVertical size={20} className="text-gray-300" /><span className="text-2xl">{task.icon}</span>
+                  <div key={task.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm hover:border-gray-300 transition-all">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center mr-1">
+                        <button type="button" onClick={() => moveTask(index, 'up')} disabled={index === 0} className={`p-0.5 rounded ${index === 0 ? 'text-transparent' : 'text-gray-400 hover:text-blue-500 active:scale-95'}`}><ChevronUp size={16} /></button>
+                        <button type="button" onClick={() => moveTask(index, 'down')} disabled={index === (tasks[parentTargetKid] || []).length - 1} className={`p-0.5 rounded ${index === (tasks[parentTargetKid] || []).length - 1 ? 'text-transparent' : 'text-gray-400 hover:text-blue-500 active:scale-95'}`}><ChevronDown size={16} /></button>
+                      </div>
+                      <GripVertical size={20} className="text-gray-300" />
+                      <span className="text-2xl ml-1">{task.icon}</span>
                       <div><p className="font-bold text-gray-700">{task.title}</p><p className="text-xs font-semibold text-gray-400 uppercase">{task.category}</p></div>
                     </div>
                     <div className="flex gap-2">
@@ -484,11 +519,16 @@ export default function App() {
               </>
             ) : (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards (Drag)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards (Reorder)</h3>
                 {(rewards[parentTargetReward] || []).map((reward, index) => (
-                  <div key={reward.id} draggable onDragStart={() => (dragItem.current = index)} onDragEnter={() => (dragOverItem.current = index)} onDragEnd={handleRewardSort} onDragOver={(e) => e.preventDefault()} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm cursor-grab active:cursor-grabbing">
-                    <div className="flex items-center gap-3">
-                      <GripVertical size={20} className="text-gray-300" /><span className="text-2xl">{reward.icon}</span>
+                  <div key={reward.id} className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm hover:border-gray-300 transition-all">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-center mr-1">
+                        <button type="button" onClick={() => moveReward(index, 'up')} disabled={index === 0} className={`p-0.5 rounded ${index === 0 ? 'text-transparent' : 'text-gray-400 hover:text-purple-500 active:scale-95'}`}><ChevronUp size={16} /></button>
+                        <button type="button" onClick={() => moveReward(index, 'down')} disabled={index === (rewards[parentTargetReward] || []).length - 1} className={`p-0.5 rounded ${index === (rewards[parentTargetReward] || []).length - 1 ? 'text-transparent' : 'text-gray-400 hover:text-purple-500 active:scale-95'}`}><ChevronDown size={16} /></button>
+                      </div>
+                      <GripVertical size={20} className="text-gray-300" />
+                      <span className="text-2xl ml-1">{reward.icon}</span>
                       <div><p className="font-bold text-gray-700">{reward.title}</p><p className="text-sm font-bold text-purple-500 flex items-center gap-1"><Star size={14} className="fill-current"/> {reward.cost} Stars</p></div>
                     </div>
                     <div className="flex gap-2">
@@ -596,7 +636,7 @@ export default function App() {
                         <p className={`font-bold ${record.fulfilled ? 'text-gray-400 line-through decoration-gray-300' : 'text-gray-700'}`}>{record.title}</p>
                         <p className="text-[10px] text-gray-400">{record.date}</p>
                       </div>
-                      {record.fulfilled && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100">Delivered!</span>}
+                      {record.fulfilled && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200 shadow-sm animate-pop">Delivered!</span>}
                     </div>
                   ))}
                 </div>
