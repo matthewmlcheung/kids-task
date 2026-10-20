@@ -52,11 +52,11 @@ const Confetti = () => {
   );
 };
 
+// Calculates the most recent Sunday to reset weekly tasks
 const getStartOfWeek = () => {
   const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff)).toDateString();
+  d.setDate(d.getDate() - d.getDay()); // Sunday is day 0
+  return d.toDateString();
 };
 
 const defaultTasks = {
@@ -71,6 +71,8 @@ const defaultTasks = {
     { id: 1792037683412, title: "Practice Violin (30 mins)", icon: "🎻", category: "daily", completed: false },
     { id: 1792037802996, title: "Pack School Bag", icon: "🎒", category: "daily", completed: false },
     { id: 1792037828225, title: "Pack Snacks", icon: "🍎", category: "daily", completed: false },
+    { id: 1792414436544, title: "Chinese Med", icon: "☕️", category: "daily", completed: false },
+    { id: 1792414496796, title: "No Rubbing", icon: "☝️", category: "daily", completed: false },
     { id: 1792037840554, title: "Prepare for OK Lens", icon: "🧿", category: "daily", completed: false },
     { id: 1792037725708, title: "Superkids HW", icon: "🦸‍♀️", category: "weekly", completed: false },
     { id: 1792037747338, title: "Baby Yeung HW", icon: "👧", category: "weekly", completed: false },
@@ -145,7 +147,6 @@ export default function App() {
   const [editingReward, setEditingReward] = useState({ title: '', icon: '🎁', cost: 10 });
   const [editId, setEditId] = useState(null);
 
-  // --- NEW BULLETPROOF DRAG & DROP REFS ---
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
@@ -169,7 +170,7 @@ export default function App() {
   const loadAndMigrateData = (data) => {
     if (!data) data = {};
     const today = new Date().toDateString();
-    const currentWeekStart = getStartOfWeek();
+    const currentWeekStart = getStartOfWeek(); // Evaluates to Sunday
     
     let parsedTasks = data.tasks || defaultTasks;
     if (Array.isArray(parsedTasks) || !parsedTasks.Colette) {
@@ -196,6 +197,7 @@ export default function App() {
     let lastLogin = data.lastLogin || today;
     let parsedWeeklyReset = data.lastWeeklyReset || currentWeekStart;
 
+    // Daily Reset at midnight
     if (lastLogin !== today) {
       ['Colette', 'Kingsley'].forEach(kid => {
         if(parsedTasks[kid]) {
@@ -204,6 +206,7 @@ export default function App() {
       });
     }
 
+    // Weekly Reset on Sunday
     if (parsedWeeklyReset !== currentWeekStart) {
       ['Colette', 'Kingsley'].forEach(kid => {
         if(parsedTasks[kid]) {
@@ -359,7 +362,6 @@ export default function App() {
     }
   };
 
-  // --- MANUAL UP/DOWN ARROWS ---
   const moveTask = (index, direction) => {
     setTasks(prev => {
       const updated = { ...prev };
@@ -388,16 +390,11 @@ export default function App() {
     });
   };
 
-  // --- REVAMPED DRAG & DROP ENGINE ---
   const handleDragStart = (e, index) => {
     dragItem.current = index;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", index);
-    
-    // Slight transparency to show it's being dragged
-    setTimeout(() => {
-      if (e.target) e.target.style.opacity = "0.4";
-    }, 0);
+    setTimeout(() => { if (e.target) e.target.style.opacity = "0.4"; }, 0);
   };
 
   const handleDragEnd = (e) => {
@@ -407,7 +404,7 @@ export default function App() {
   };
 
   const handleDragOver = (e, index) => {
-    e.preventDefault(); // MANDATORY: This allows the element to be dropped here
+    e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     dragOverItem.current = index;
   };
@@ -555,7 +552,7 @@ export default function App() {
               </>
             ) : parentTab === 'quests' ? (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests (Drag)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetKid}'s Quests</h3>
                 {(tasks[parentTargetKid] || []).map((task, index) => (
                   <div 
                     key={task.id} 
@@ -584,7 +581,7 @@ export default function App() {
               </>
             ) : (
               <>
-                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards (Drag)</h3>
+                <h3 className="font-bold text-gray-500 text-sm uppercase tracking-wider mb-2 px-2">{parentTargetReward} Rewards</h3>
                 {(rewards[parentTargetReward] || []).map((reward, index) => (
                   <div 
                     key={reward.id} 
